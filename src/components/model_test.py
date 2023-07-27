@@ -46,4 +46,8 @@ if __name__ == "__main__":
     nlp = spacy.load(r"C:\Users\HP\Desktop\job_scan\artifact\spacy_model")
     test_data = fetch_test_data()
     acc = evaluate_model(nlp , test_data)
+
+
+
+
    
