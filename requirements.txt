@@ -8,4 +8,6 @@ pymongo
 Flask
 dill
 gunicorn
+sqlalchemy
+pyodbc
 -e .
