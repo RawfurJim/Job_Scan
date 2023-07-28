@@ -60,23 +60,47 @@ def process_data_through_spacy(data, nlp):
     annotations.append({"text": data, "entities": entities})
     return annotations
 
+# To make sure Docanno can understand the file we ned to convert the file formet
+
+def converted_data(data):
+    converted_data = []
+
+    for index, item in enumerate(data):
+        new_item = {}
+        new_item["id"] = index + 1
+        new_item["text"] = item["text"]
+
+        # Remove the text segment from each entity
+        new_item["label"] = [[entity[1], entity[2], entity[3]] for entity in item["entities"]]
+
+        new_item["Comments"] = []  # add this if your output also requires the "Comments" field
+        converted_data.append(new_item)
+
+    return converted_data
+
 def save_to_local_directory(annotations, directory):
+    data = converted_data(annotations)
     os.makedirs(directory, exist_ok=True)
 
     # Use current date and time to create a unique filename
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-    filename = f"annotations_{timestamp}.json"
+    filename = f"annotations_{timestamp}.jsonl"
     filepath = os.path.join(directory, filename)
+    with open(filepath, 'w') as f:  # replace 'newfile.jsonl' with your desired filename
+        for item in data:
+            json.dump(item, f)
+            f.write('\n')
 
-    with open(filepath, 'w') as f:
-        json.dump(annotations, f)
+    # with open(filepath, 'w') as f:
+    #     json.dump(annotations, f)
 
 def insert_into_mongodb(annotations, collection):
+    data = converted_data(annotations)
     """
     Function to insert data into MongoDB
     """
     # Insert annotations into MongoDB
-    for annotation in annotations:
+    for annotation in data:
         collection.insert_one(annotation)
 
 # df = fetch_data_from_sql(engine)
