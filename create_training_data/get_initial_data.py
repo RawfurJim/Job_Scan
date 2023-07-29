@@ -7,105 +7,151 @@ import urllib
 import pyodbc
 import json
 import spacy
-from src.components.data_ingestion import fetch_data, fetch_test_data
-from src.components.model_train import train_model
-from src.components.model_test import evaluate_model
 from datetime import datetime
 import os
 
-# # Establish a connection to the SQL Server
-# params = urllib.parse.quote_plus(r'DRIVER={SQL Server};SERVER=HP-ELITEBOOK\SQLEXPRESS;DATABASE=job_scan;Trusted_Connection=yes;')
-# engine = create_engine("mssql+pyodbc:///?odbc_connect=%s" % params)
-
-# # Load the spaCy model
-# nlp = spacy.load(r"C:\Users\HP\Desktop\job_scan\artifact\spacy_model")
 
 
-# # Establish a connection to the SQL Server
-# params = urllib.parse.quote_plus(r'DRIVER={SQL Server};SERVER=HP-ELITEBOOK\SQLEXPRESS;DATABASE=job_scan;Trusted_Connection=yes;')
-# engine = create_engine("mssql+pyodbc:///?odbc_connect=%s" % params)
+class DataFetcher:
+    def __init__(self, engine, nlp, collection):
+        self.engine = engine
+        self.nlp = nlp
+        self.collection = collection
 
-# # Load the spaCy model
-# nlp = spacy.load(r"C:\Users\HP\Desktop\job_scan\artifact\spacy_model")
+    def fetch_data_from_sql(self):
+        """
+        Function to fetch data from SQL database
+        """
+        try:
+            data = []
+            df = pd.read_sql('SELECT * FROM job_data', self.engine)
+            for i in df['job_description']:
+                data.append(i)
+            a = ''.join(data)
+            return a
+        except Exception as e:
+            logging.error("Error occurred while fetching data from SQL", exc_info=True)
+            raise CustomException(e, sys.exc_info())
 
-# # MongoDB Connection
-# client = MongoClient('mongodb://localhost:27017/')
-# db = client['job_db']  # Use your desired database
-# collection = db['pre_annotate_data']  # Use your desired collection
+    def process_data_through_spacy(self, data):
+        """
+        Function to process data through the spaCy model
+        """
+        try:
+            annotations = []
+            doc = self.nlp(data)
+            entities = [(ent.text, ent.start_char, ent.end_char, ent.label_) for ent in doc.ents]
+            annotations.append({"text": data, "entities": entities})
+            return annotations
+        except Exception as e:
+            logging.error("Error occurred while processing data through SpaCy", exc_info=True)
+            raise CustomException(e, sys.exc_info())
+
+    def converted_data(self, data):
+        converted_data = []
+        for index, item in enumerate(data):
+            new_item = {}
+            new_item["id"] = index + 1
+            new_item["text"] = item["text"]
+            new_item["label"] = [[entity[1], entity[2], entity[3]] for entity in item["entities"]]
+            new_item["Comments"] = []  # add this if your output also requires the "Comments" field
+            converted_data.append(new_item)
+        return converted_data
+
+    def save_to_local_directory(self, annotations, directory):
+        try:
+            data = self.converted_data(annotations)
+            os.makedirs(directory, exist_ok=True)
+            timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+            filename = f"annotations_{timestamp}.jsonl"
+            filepath = os.path.join(directory, filename)
+            with open(filepath, 'w') as f:
+                for item in data:
+                    json.dump(item, f)
+                    f.write('\n')
+        except Exception as e:
+            logging.error("Error occurred while saving data to local directory", exc_info=True)
+            raise CustomException(e, sys.exc_info())
+
+    def insert_into_mongodb(self, annotations):
+        """
+        Function to insert data into MongoDB
+        """
+        try:
+            data = self.converted_data(annotations)
+            for annotation in data:
+                self.collection.insert_one(annotation)
+        except Exception as e:
+            logging.error("Error occurred while inserting data into MongoDB", exc_info=True)
+            raise CustomException(e, sys.exc_info())
 
 
-def fetch_data_from_sql(engine):
-    """
-    Function to fetch data from SQL database
-    """
-    data = []
-    df = pd.read_sql('SELECT * FROM job_data', engine)
-    for i in df['job_description']:
-        data.append(i)
-    a = ''.join(data)
-    return a
+# def fetch_data_from_sql(engine):
+#     """
+#     Function to fetch data from SQL database
+#     """
+#     data = []
+#     df = pd.read_sql('SELECT * FROM job_data', engine)
+#     for i in df['job_description']:
+#         data.append(i)
+#     a = ''.join(data)
+#     return a
 
-def process_data_through_spacy(data, nlp):
-    """
-    Function to process data through the spaCy model
-    """
-    annotations = []
+# def process_data_through_spacy(data, nlp):
+#     """
+#     Function to process data through the spaCy model
+#     """
+#     annotations = []
 
-    doc = nlp(data)
+#     doc = nlp(data)
         
-        # Extract annotations
-    entities = [(ent.text, ent.start_char, ent.end_char, ent.label_) for ent in doc.ents]
+#         # Extract annotations
+#     entities = [(ent.text, ent.start_char, ent.end_char, ent.label_) for ent in doc.ents]
         
-        # Append to annotations list
-    annotations.append({"text": data, "entities": entities})
-    return annotations
+#         # Append to annotations list
+#     annotations.append({"text": data, "entities": entities})
+#     return annotations
 
-# To make sure Docanno can understand the file we ned to convert the file formet
+# # To make sure Docanno can understand the file we ned to convert the file formet
 
-def converted_data(data):
-    converted_data = []
+# def converted_data(data):
+#     converted_data = []
 
-    for index, item in enumerate(data):
-        new_item = {}
-        new_item["id"] = index + 1
-        new_item["text"] = item["text"]
+#     for index, item in enumerate(data):
+#         new_item = {}
+#         new_item["id"] = index + 1
+#         new_item["text"] = item["text"]
 
-        # Remove the text segment from each entity
-        new_item["label"] = [[entity[1], entity[2], entity[3]] for entity in item["entities"]]
+#         # Remove the text segment from each entity
+#         new_item["label"] = [[entity[1], entity[2], entity[3]] for entity in item["entities"]]
 
-        new_item["Comments"] = []  # add this if your output also requires the "Comments" field
-        converted_data.append(new_item)
+#         new_item["Comments"] = []  # add this if your output also requires the "Comments" field
+#         converted_data.append(new_item)
 
-    return converted_data
+#     return converted_data
 
-def save_to_local_directory(annotations, directory):
-    data = converted_data(annotations)
-    os.makedirs(directory, exist_ok=True)
+# def save_to_local_directory(annotations, directory):
+#     data = converted_data(annotations)
+#     os.makedirs(directory, exist_ok=True)
 
-    # Use current date and time to create a unique filename
-    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-    filename = f"annotations_{timestamp}.jsonl"
-    filepath = os.path.join(directory, filename)
-    with open(filepath, 'w') as f:  # replace 'newfile.jsonl' with your desired filename
-        for item in data:
-            json.dump(item, f)
-            f.write('\n')
+#     # Use current date and time to create a unique filename
+#     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+#     filename = f"annotations_{timestamp}.jsonl"
+#     filepath = os.path.join(directory, filename)
+#     with open(filepath, 'w') as f:  # replace 'newfile.jsonl' with your desired filename
+#         for item in data:
+#             json.dump(item, f)
+#             f.write('\n')
 
-    # with open(filepath, 'w') as f:
-    #     json.dump(annotations, f)
+#     # with open(filepath, 'w') as f:
+#     #     json.dump(annotations, f)
 
-def insert_into_mongodb(annotations, collection):
-    data = converted_data(annotations)
-    """
-    Function to insert data into MongoDB
-    """
-    # Insert annotations into MongoDB
-    for annotation in data:
-        collection.insert_one(annotation)
-
-# df = fetch_data_from_sql(engine)
-# annotations = process_data_through_spacy(df, nlp)
-# save_to_local_directory(annotations, r'C:\Users\HP\Desktop\job_scan\pre_anootate_data')
-# insert_into_mongodb(annotations, collection)
-
+# def insert_into_mongodb(annotations, collection):
+#     data = converted_data(annotations)
+#     """
+#     Function to insert data into MongoDB
+#     """
+#     # Insert annotations into MongoDB
+#     for annotation in data:
+#         collection.insert_one(annotation)
 
