@@ -11,9 +11,31 @@
         justify-content: space-between;
         margin-bottom: 1em;
     }
-    h1, h2, h3 {
-        color: #333;
+    nav {
+    background-color: #333;
+    padding: 10px 0;
+    text-align: center;
     }
+
+    nav a {
+        color: #fff;
+        text-decoration: none;
+        margin: 0 15px;
+        font-size: 18px;
+        transition: color 0.3s ease;
+    }
+
+    nav a:hover {
+        color: #f8a167;
+    }
+    h1, h2, h3 {
+    color: #333;
+    }
+
+    h2 {
+        text-align: center;
+    }
+    
     textarea {
         width: 550px;
         min-height: 400px;
@@ -57,96 +79,69 @@
         margin-right: 1em;
     }
 </style>
-<html>
-<head>
-    <title>Job Description Skill Extractor - Results</title>
-</head>
-<body>
-    <nav>
-        <a href="{{ url_for('index') }}">Home</a> |
-        <a href="{{ url_for('get_skills') }}">Get Skills</a>
-    </nav>
+<nav>
+    <a href="{{ url_for('index') }}">Home</a> |
+    <a href="{{ url_for('get_skills') }}">Get Skills</a>
+</nav>
 
-    <h1>Job Description Skill Extractor - Results</h1>
-    
-    {% if message %}
-        <p>{{ message }}</p>
-    {% endif %}
+<h1>Job Description Skill Extractor - Results</h1>
 
-    <h2>Job Description Skills and Matching:</h2>
-    {% if matching_skills or missing_skills %}
-        <table>
-            <thead>
+{% if message %}
+    <p>{{ message }}</p>
+{% endif %}
+
+<h2>Hard Skills:</h2>
+{% if matching_hard_skills or missing_hard_skills %}
+    <table>
+        <thead>
+            <tr>
+                <th>Skill</th>
+                <th>Match</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for skill in matching_hard_skills %}
                 <tr>
-                    <th>Skill</th>
-                    <th>Match</th>
+                    <td>{{ skill[0] }}</td>
+                    <td>&#10003;</td>  <!-- This is a check mark -->
                 </tr>
-            </thead>
-            <tbody>
-                {% for skill in matching_skills %}
-                    <tr>
-                        <td>{{ skill }}</td>
-                        <td>&#10003;</td>  <!-- This is a check mark -->
-                    </tr>
-                {% endfor %}
-                {% for skill in missing_skills %}
-                    <tr>
-                        <td>{{ skill }}</td>
-                        <td>&#10007;</td>  <!-- This is a cross mark -->
-                    </tr>
-                {% endfor %}
-            </tbody>
-        </table>
-    {% else %}
-        <p>No skills extracted.</p>
-    {% endif %}
-
-    <button id="toggleJob">Toggle Job Skills</button>
-    <button id="toggleResume">Toggle Resume Skills</button>
-
-    <div id="job_skills" class="hidden">
-        <h3>Job Skills:</h3>
-        {% if job_skills %}
-            <ul>
-                {% for skill in job_skills %}
-                <li>{{ skill }}</li>
             {% endfor %}
-            </ul>
-        {% else %}
-            <p>No skills extracted.</p>
-        {% endif %}
-    </div>
-
-    <div id="resume_skills" class="hidden">
-        <h3>Resume Skills:</h3>
-        {% if resume_skills %}
-            <ul>
-                {% for skill in resume_skills %}
-                <li>{{ skill }}</li>
+            {% for skill in missing_hard_skills %}
+                <tr>
+                    <td>{{ skill[0] }}</td>
+                    <td>&#10007;</td>  <!-- This is a cross mark -->
+                </tr>
             {% endfor %}
-            </ul>
-        {% else %}
-            <p>No skills extracted.</p>
-        {% endif %}
-    </div>
+        </tbody>
+    </table>
+{% else %}
+    <p>No hard skills extracted.</p>
+{% endif %}
 
-    <script>
-        document.getElementById('toggleJob').onclick = function() {
-            var job_skills = document.getElementById('job_skills');
-            if (job_skills.style.display !== 'none') {
-                job_skills.style.display = 'none';
-            } else {
-                job_skills.style.display = 'block';
-            }
-        };
-        document.getElementById('toggleResume').onclick = function() {
-            var resume_skills = document.getElementById('resume_skills');
-            if (resume_skills.style.display !== 'none') {
-                resume_skills.style.display = 'none';
-            } else {
-                resume_skills.style.display = 'block';
-            }
-        };
-    </script>
-</body>
-</html>
+<h2>Soft Skills:</h2>
+{% if matching_soft_skills or missing_soft_skills %}
+    <table>
+        <thead>
+            <tr>
+                <th>Skill</th>
+                <th>Match</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for skill in matching_soft_skills %}
+                <tr>
+                    <td>{{ skill[0] }}</td>
+                    <td>&#10003;</td>  <!-- This is a check mark -->
+                </tr>
+            {% endfor %}
+            {% for skill in missing_soft_skills %}
+                <tr>
+                    <td>{{ skill[0] }}</td>
+                    <td>&#10007;</td>  <!-- This is a cross mark -->
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+{% else %}
+    <p>No soft skills extracted.</p>
+{% endif %}

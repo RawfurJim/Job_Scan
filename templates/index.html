@@ -15,6 +15,24 @@
         h1, h2, h3 {
             color: #333;
         }
+        nav {
+            background-color: #333;
+            padding: 10px 0;
+            text-align: center;
+            }
+
+        nav a {
+            color: #fff;
+            text-decoration: none;
+            margin: 0 15px;
+            font-size: 18px;
+            transition: color 0.3s ease;
+        }
+
+        nav a:hover {
+            color: #f8a167;
+        }
+
         textarea {
             width: 550px;
             min-height: 400px;
@@ -58,19 +76,17 @@
             margin-right: 1em;
         }
     </style>
-<head>
-    <title>Job Description Skill Extractor</title>
-</head>
+
 <body>
 
 
-    <h1>Job Description Skill Extractor</h1>
+    
     <nav>
         <a href="{{ url_for('index') }}">Home</a> |
         <a href="{{ url_for('get_skills') }}">Get Skills</a>
     </nav>
 
-
+    <h1> Put Job Description and Resume in the Box to get ATS keyword</h1>
     <form method="POST" action="{{ url_for('get_skills') }}">
         <div class="form-group">
             <div>

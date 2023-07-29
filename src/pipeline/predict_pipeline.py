@@ -1,7 +1,6 @@
 
 
 import spacy
-from src.components.data_ingestion import fetch_test_data
 import re
 
 class PredictPipeline:
