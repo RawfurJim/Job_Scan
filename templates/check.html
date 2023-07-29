@@ -318,3 +318,243 @@ if __name__ == '__main__':
         }
     </style>
 </head>
+
+
+
+
+
+
+
+
+# data ingestion
+
+
+from pymongo import MongoClient
+import pandas as pd
+import time
+
+
+
+def fetch_data():
+    # Create a client
+    client = MongoClient('mongodb://localhost:27017/')
+
+# Connect to your database
+    db = client['job_db']
+    # Get your collection
+    collection = db['Annotate_data_1']
+
+    # Fetch all documents from your collection
+    data = list(collection.find({}))
+
+    # Convert data to pandas DataFrame
+    df = pd.DataFrame(data)
+    data = []
+    for i in range(len(df)):
+        text = df.iloc[i]['text']
+        entities = df.iloc[i]['label']
+        data.append((text, {"entities": entities}))
+    clean_data = remove_overlapping_entities(data)
+    return clean_data
+
+def fetch_test_data():
+    client = MongoClient('mongodb://localhost:27017/')
+    db = client['job_db']
+    collection = db['test_data']  # use your test data collection
+    data = list(collection.find({}))
+    df = pd.DataFrame(data)
+    data = []
+    for i in range(len(df)):
+        text = df.iloc[i]['text']
+        entities = df.iloc[i]['label']
+        data.append((text, {"entities": entities}))
+    clean_data = remove_overlapping_entities(data)
+   
+    return clean_data
+
+def remove_overlapping_entities(data):
+    result = []
+    for text, annot in data:
+        entities = sorted(annot["entities"], key=lambda x: x[0]) # Sort entities by start character
+        non_overlapping_entities = []
+        prev_entity = entities[0]
+        for curr_entity in entities[1:]:
+            # If the start of current entity is inside the previous entity span, it is an overlap
+            if curr_entity[0] < prev_entity[1]:
+                # Take the longer entity
+                if (curr_entity[1]-curr_entity[0]) > (prev_entity[1]-prev_entity[0]):
+                    prev_entity = curr_entity
+            else:
+                non_overlapping_entities.append(prev_entity)
+                prev_entity = curr_entity
+        non_overlapping_entities.append(prev_entity) # add the last entity
+        result.append((text, {"entities": non_overlapping_entities}))
+    return result
+if __name__=="__main__":
+    fetch_data()
+    fetch_test_data()
+
+
+
+
+
+#model test 
+
+
+
+import spacy
+from src.components.data_ingestion import fetch_test_data
+import re
+
+
+def evaluate_model(nlp, test_data):
+
+    def preprocess_text(text):
+        text = re.sub('\s+', ' ', text)
+        text = text.strip()
+        return text
+
+    # Initialize counters for correctly recognized entities and total entities
+    correct_entities = 0
+    total_entities = 0
+
+    for text, annotations in test_data:
+        text = preprocess_text(text)
+        print(text)
+
+        # Get the original words that are entities
+        original_entities = [text[start:end] for start, end, label in annotations['entities']]
+
+        # Update total_entities
+        total_entities += len(original_entities)
+
+        # Predict entities using the model
+        doc = nlp(text)
+
+        # Get the words that the model predicts as entities
+        predicted_entities = [ent.text for ent in doc.ents]
+
+        # Check how many entities are correctly predicted
+        correct_entities += len([entity for entity in original_entities if entity in predicted_entities])
+        for ent in doc.ents:
+            print(ent.text, ent.label_)
+
+    # Calculate the accuracy
+    accuracy = correct_entities / total_entities * 100
+    print(accuracy)
+    return accuracy
+
+if __name__ == "__main__":
+    nlp = spacy.load(r"C:\Users\HP\Desktop\job_scan\artifact\spacy_model")
+    test_data = fetch_test_data()
+    acc = evaluate_model(nlp , test_data)
+
+
+
+
+
+
+#   model_train
+
+
+import spacy
+import pickle
+from spacy.training import Example
+import random
+from spacy.training import offsets_to_biluo_tags
+
+from src.components.data_ingestion import fetch_data, fetch_test_data
+
+
+def train_model(data):
+   
+    # Load the existing model
+    nlp = spacy.load("en_core_web_sm")
+
+    # Get the NER pipeline component
+    ner = nlp.get_pipe("ner")
+
+    # Add labels
+    for _, annotations in data:
+        for ent in annotations.get("entities"):
+            ner.add_label(ent[2])
+
+    # Disable other components for efficient training
+    other_pipes = [pipe for pipe in nlp.pipe_names if pipe != "ner"]
+    with nlp.disable_pipes(*other_pipes): 
+        # Only train NER
+        optimizer = nlp.resume_training()
+
+        # Create a list of examples
+        examples = [Example.from_dict(nlp.make_doc(text), annotations) for text, annotations in data]
+
+        # Train for 60 iterations
+        for itn in range(60):
+            random.shuffle(examples)
+            losses = {}
+            for batch in spacy.util.minibatch(examples, size=2):
+                nlp.update(batch, sgd=optimizer, losses=losses)
+            print(losses)
+
+    # Instead of saving the model to disk here, we return it
+    return nlp
+
+if __name__=="__main__":
+    train_data = fetch_data()
+    train_model(train_data)
+
+
+
+
+
+
+
+
+
+# from spacy.training import offsets_to_biluo_tags
+
+# # Load the existing model
+# nlp = spacy.load("en_core_web_sm")
+
+# # Get the NER pipeline component
+# ner = nlp.get_pipe("ner")
+
+# data = fetch_data()
+
+# # Add labels
+# for _, annotations in data:
+#     for ent in annotations.get("entities"):
+#         ner.add_label(ent[2])
+
+# # Disable other components for efficient training
+# other_pipes = [pipe for pipe in nlp.pipe_names if pipe != "ner"]
+# with nlp.disable_pipes(*other_pipes): 
+#     # Only train NER
+#     optimizer = nlp.resume_training()
+
+#     # Create a list of examples
+#     examples = [Example.from_dict(nlp.make_doc(text), annotations) for text, annotations in data]
+
+#     # Train for 150 iterations
+#     for itn in range(60):
+#         random.shuffle(examples)
+#         losses = {}
+#         for batch in spacy.util.minibatch(examples, size=2):
+#             nlp.update(batch, sgd=optimizer, losses=losses)
+#         print(losses)
+
+
+
+# nlp.to_disk(r"C:\Users\HP\Desktop\job_scan\artifact\spacy_model")
+
+
+
+
+
+
+
+
+
+
+
+   
