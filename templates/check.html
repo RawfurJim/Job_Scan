@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Job Description Skill Extractor</title>
+</head>
+<body>
+    <h1>Job Description Skill Extractor</h1>
+
+    <form method="POST" action="{{ url_for('get_skills') }}">
+        <h3>Job Description:</h3>
+        <textarea name="job_desc" rows="20" cols="50"></textarea><br>
+        <h3>Resume:</h3>
+        <textarea name="resume" rows="20" cols="50"></textarea><br>
+        <input type="submit" value="Scan">
+    </form>
+
+    <h2>Job Description Skills and Matching:</h2>
+    {% if matching_skills or missing_skills %}
+        <table>
+            <thead>
+                <tr>
+                    <th>Skill</th>
+                    <th>Match</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for skill in matching_skills %}
+                    <tr>
+                        <td>{{ skill }}</td>
+                        <td>&#10003;</td>  <!-- This is a check mark -->
+                    </tr>
+                {% endfor %}
+                {% for skill in missing_skills %}
+                    <tr>
+                        <td>{{ skill }}</td>
+                        <td>&#10007;</td>  <!-- This is a cross mark -->
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% else %}
+        <p>No skills extracted.</p>
+    {% endif %}
+    <h2>Job Skills:</h2>
+    {% if job_skills %}
+        <ul>
+            {% for skill in job_skills %}
+                <li>{{ skill }}</li>
+            {% endfor %}
+        </ul>
+    {% else %}
+        <p>No skills extracted.</p>
+    {% endif %}
+
+    <h2>Resume Skills:</h2>
+    {% if resume_skills %}
+        <ul>
+            {% for skill in resume_skills %}
+                <li>{{ skill }}</li>
+            {% endfor %}
+        </ul>
+    {% else %}
+        <p>No skills extracted.</p>
+    {% endif %}
+</body>
+</html>
+
+
+
+from flask import Flask, render_template, request
+from src.pipeline.predict_pipeline import PredictPipeline
+
+app = Flask(__name__)
+
+pipeline = PredictPipeline()
+
+@app.route('/')
+def index():
+    return render_template('index.html')
+
+@app.route('/get_skills', methods=['POST'])
+def get_skills():
+    job_desc = request.form.get('job_desc')
+    resume = request.form.get('resume')
+
+    job_desc_skills = pipeline.evaluate_model(job_desc)
+    job_desc_skills_set = set([skill[0] for skill in job_desc_skills])
+    
+    resume_skills = pipeline.evaluate_model(resume)
+    resume_skills_set = set([skill[0] for skill in resume_skills])
+
+    matching_skills = job_desc_skills_set.intersection(resume_skills_set)
+    missing_skills = job_desc_skills_set.difference(resume_skills_set)
+
+    return render_template('index.html', matching_skills=matching_skills, missing_skills=missing_skills, job_skills = job_desc_skills_set , resume_skills=resume_skills_set)
+
+if __name__ == '__main__':
+    app.run(debug=True)
+
+
+
+    <!DOCTYPE html>
+    <html>
+    <head>
+        <title>Job Description Skill Extractor</title>
+        <style>
+            body {
+                font-family: Arial, sans-serif;
+                margin: 0;
+                padding: 0;
+                background-color: #f5f5f5;
+            }
+            .form-group {
+                display: flex;
+                justify-content: space-between;
+                margin-bottom: 1em;
+            }
+            h1, h2, h3 {
+                color: #333;
+            }
+            textarea {
+                width: 550px;
+                min-height: 400px;
+                padding: 50px;
+                padding-left: 30px;
+                border-radius: 50px;
+                border: 1px solid #ccc;
+                font-size: 1em;
+                resize: vertical;
+            }
+            input[type="submit"] {
+                padding: 0.5em 1em;
+                border-radius: 4px;
+                border: none;
+                background-color: #007BFF;
+                color: white;
+                cursor: pointer;
+                display: block;
+                margin: 1em auto;
+            }
+            table {
+                width: 100%;
+                margin-bottom: 1em;
+                border-collapse: collapse;
+            }
+            th, td {
+                padding: 0.5em;
+                border: 1px solid #ddd;
+            }
+            th {
+                background-color: #007BFF;
+                color: white;
+            }
+            button {
+                padding: 0.5em 1em;
+                border-radius: 4px;
+                border: none;
+                background-color: #007BFF;
+                color: white;
+                cursor: pointer;
+                margin-right: 1em;
+            }
+        </style>
+    </head>
+    <body>
+    
+        <h1>Job Description Skill Extractor</h1>
+    
+        <form method="POST" action="{{ url_for('get_skills') }}">
+            <div class="form-group">
+                <div>
+                    <h3>Job Description:</h3>
+                    <textarea name="job_desc" rows="20"></textarea>
+                </div>
+                <div>
+                    <h3>Resume:</h3>
+                    <textarea name="resume" rows="20"></textarea>
+                </div>
+            </div>
+            <input type="submit" value="Scan">
+        </form>
+    
+    
+        <h2>Job Description Skills and Matching:</h2>
+        {% if matching_skills or missing_skills %}
+            <table>
+                <thead>
+                    <tr>
+                        <th>Skill</th>
+                        <th>Match</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for skill in matching_skills %}
+                        <tr>
+                            <td>{{ skill }}</td>
+                            <td>&#10003;</td>  <!-- This is a check mark -->
+                        </tr>
+                    {% endfor %}
+                    {% for skill in missing_skills %}
+                        <tr>
+                            <td>{{ skill }}</td>
+                            <td>&#10007;</td>  <!-- This is a cross mark -->
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        {% else %}
+            <p>No skills extracted.</p>
+        {% endif %}
+    
+        <button id="toggleJob">Toggle Job Skills</button>
+        <button id="toggleResume">Toggle Resume Skills</button>
+    
+        <div id="job_skills" class="hidden">
+            <h3>Job Skills:</h3>
+            {% if job_skills %}
+                <ul>
+                    {% for skill in job_skills %}
+                    <li>{{ skill }}</li>
+                {% endfor %}
+                </ul>
+            {% else %}
+                <p>No skills extracted.</p>
+            {% endif %}
+        </div>
+    
+        <div id="resume_skills" class="hidden">
+            <h3>Resume Skills:</h3>
+            {% if resume_skills %}
+                <ul>
+                    {% for skill in resume_skills %}
+                    <li>{{ skill }}</li>
+                {% endfor %}
+                </ul>
+            {% else %}
+                <p>No skills extracted.</p>
+            {% endif %}
+        </div>
+    
+        <script>
+            document.getElementById('toggleJob').onclick = function() {
+                var job_skills = document.getElementById('job_skills');
+                if (job_skills.style.display !== 'none') {
+                    job_skills.style.display = 'none';
+                } else {
+                    job_skills.style.display = 'block';
+                }
+            };
+            document.getElementById('toggleResume').onclick = function() {
+                var resume_skills = document.getElementById('resume_skills');
+                if (resume_skills.style.display !== 'none') {
+                    resume_skills.style.display = 'none';
+                } else {
+                    resume_skills.style.display = 'block';
+                }
+            };
+        </script>
+    </body>
+    </html>
+
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f5f5f5;
+        }
+        .form-group {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 1em;
+        }
+        h1, h2, h3 {
+            color: #333;
+        }
+        textarea {
+            width: 550px;
+            min-height: 400px;
+            padding: 50px;
+            padding-left: 30px;
+            border-radius: 50px;
+            border: 1px solid #ccc;
+            font-size: 1em;
+            resize: vertical;
+        }
+        input[type="submit"] {
+            padding: 0.5em 1em;
+            border-radius: 4px;
+            border: none;
+            background-color: #007BFF;
+            color: white;
+            cursor: pointer;
+            display: block;
+            margin: 1em auto;
+        }
+        table {
+            width: 100%;
+            margin-bottom: 1em;
+            border-collapse: collapse;
+        }
+        th, td {
+            padding: 0.5em;
+            border: 1px solid #ddd;
+        }
+        th {
+            background-color: #007BFF;
+            color: white;
+        }
+        button {
+            padding: 0.5em 1em;
+            border-radius: 4px;
+            border: none;
+            background-color: #007BFF;
+            color: white;
+            cursor: pointer;
+            margin-right: 1em;
+        }
+    </style>
+</head>

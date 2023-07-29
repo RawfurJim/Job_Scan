@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f5f5f5;
+        }
+        .form-group {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 1em;
+        }
+        h1, h2, h3 {
+            color: #333;
+        }
+        textarea {
+            width: 550px;
+            min-height: 400px;
+            padding: 50px;
+            padding-left: 30px;
+            border-radius: 50px;
+            border: 1px solid #ccc;
+            font-size: 1em;
+            resize: vertical;
+        }
+        input[type="submit"] {
+            padding: 0.5em 1em;
+            border-radius: 4px;
+            border: none;
+            background-color: #007BFF;
+            color: white;
+            cursor: pointer;
+            display: block;
+            margin: 1em auto;
+        }
+        table {
+            width: 100%;
+            margin-bottom: 1em;
+            border-collapse: collapse;
+        }
+        th, td {
+            padding: 0.5em;
+            border: 1px solid #ddd;
+        }
+        th {
+            background-color: #007BFF;
+            color: white;
+        }
+        button {
+            padding: 0.5em 1em;
+            border-radius: 4px;
+            border: none;
+            background-color: #007BFF;
+            color: white;
+            cursor: pointer;
+            margin-right: 1em;
+        }
+    </style>
+<head>
+    <title>Job Description Skill Extractor</title>
+</head>
+<body>
+
+
+    <h1>Job Description Skill Extractor</h1>
+    <nav>
+        <a href="{{ url_for('index') }}">Home</a> |
+        <a href="{{ url_for('get_skills') }}">Get Skills</a>
+    </nav>
+
+
+    <form method="POST" action="{{ url_for('get_skills') }}">
+        <div class="form-group">
+            <div>
+                <h3>Job Description:</h3>
+                <textarea name="job_desc" rows="20"></textarea>
+            </div>
+            <div>
+                <h3>Resume:</h3>
+                <textarea name="resume" rows="20"></textarea>
+            </div>
+        </div>
+        <input type="submit" value="Scan">
+    </form>
+</body>
+</html>
