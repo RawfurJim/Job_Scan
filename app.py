@@ -36,8 +36,11 @@ def get_skills():
     else:
         return render_template('get_skills.html', message="No input given.")
 
+
 if __name__ == '__main__':
     app.run(debug=True)
+# if __name__ == '__main__':
+#     app.run(host='0.0.0.0', port = int("6000"), debug=True)
 
 # from flask import Flask, render_template, request
 # from src.pipeline.predict_pipeline import PredictPipeline

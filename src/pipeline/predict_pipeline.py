@@ -2,13 +2,15 @@
 
 import spacy
 import re
+import os
 
 class PredictPipeline:
 
     def __init__(self):
-        self.nlp = spacy.load(r"C:\Users\HP\Desktop\job_scan\artifact\spacy_model")
+        model_path = os.path.join('artifact', 'spacy_model')
+        self.nlp = spacy.load(model_path)
 
     def evaluate_model(self, text):
         doc = self.nlp(text)
         results = [(ent.text, ent.label_) for ent in doc.ents]
-        return results
+        return results 
