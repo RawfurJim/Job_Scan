@@ -1,6 +1,6 @@
 ## Job Scan Project (ReadMe Loading......)
 
-https://github.com/RawfurJim/Job_Scan/assets/64610564/b339217f-1fcd-4a02-bedd-e11d932245fe
+![Animation_1](https://github.com/RawfurJim/Job_Scan/assets/64610564/209e77a9-722e-47cb-a671-5f34033693b6)
 
 
 ## Docker Pull:
