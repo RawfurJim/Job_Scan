@@ -13,6 +13,6 @@ now on browser type: http://localhost:6001
 
 Structure:
 
-![Animation_2](https://github.com/RawfurJim/Job_Scan/assets/64610564/636a07c9-9d98-413f-a256-51d0006cee81)
+![Animation_3](https://github.com/RawfurJim/Job_Scan/assets/64610564/d6325d67-84d2-4c24-8855-24b046cb7c6b)
 
 
