@@ -552,7 +552,219 @@ if __name__=="__main__":
 
 
 
+create_train_data_pipeline 
 
+import spacy
+import pandas as pd
+from sqlalchemy import create_engine, Table, Column, String, MetaData, Text
+from pymongo import MongoClient
+from sqlalchemy import create_engine
+import urllib
+import pyodbc
+import json
+import spacy
+from create_training_data.get_initial_data import fetch_data_from_sql, process_data_through_spacy,insert_into_mongodb,save_to_local_directory
+from src.components.model_train import train_model
+from src.components.model_test import evaluate_model
+
+# Establish a connection to the SQL Server
+params = urllib.parse.quote_plus(r'DRIVER={SQL Server};SERVER=HP-ELITEBOOK\SQLEXPRESS;DATABASE=job_scan;Trusted_Connection=yes;')
+engine = create_engine("mssql+pyodbc:///?odbc_connect=%s" % params)
+
+# Load the spaCy model
+nlp = spacy.load(r"C:\Users\HP\Desktop\job_scan\artifact\spacy_model")
+
+# MongoDB Connection
+client = MongoClient('mongodb://localhost:27017/')
+db = client['job_db']  # Use your desired database
+collection = db['pre_annotate_data']  # Use your desired collection
+
+
+df = fetch_data_from_sql(engine)
+annotations = process_data_through_spacy(df, nlp)
+save_to_local_directory(annotations, r'C:\Users\HP\Desktop\job_scan\pre_anootate_data')
+insert_into_mongodb(annotations, collection)
+
+
+
+
+
+
+
+
+##predict_pipeline
+
+import spacy
+from src.components.data_ingestion import fetch_data, fetch_test_data
+from src.components.model_train import train_model
+from src.components.model_test import evaluate_model
+import os
+
+
+# Directory where models are saved
+model_directory = r"C:\Users\HP\Desktop\job_scan\artifact"
+
+def get_latest_model_path():
+    """Fetches the latest model based on the versioning in the name"""
+    models = [f for f in os.listdir(model_directory) if os.path.isdir(os.path.join(model_directory, f)) and f.startswith('model')]
+    models.sort()
+    if models:
+        return os.path.join(model_directory, models[-1])
+    else:
+        return None
+
+def main():
+    # Fetch training and test data
+    training_data = fetch_data()
+    test_data = fetch_test_data()
+
+    # Train a new model
+    new_model = train_model(training_data)
+
+    # Calculate accuracy of the new model
+    new_model_accuracy = evaluate_model(new_model, test_data)
+
+    # Get the path of the latest model in the artifact directory
+    latest_model_path = get_latest_model_path()
+    if latest_model_path:
+        # If there is a previous model, load it and calculate its accuracy
+        old_model = spacy.load(latest_model_path)
+        old_model_accuracy = evaluate_model(old_model, test_data)
+    else:
+        # If there is no previous model, set its accuracy as 0
+        old_model_accuracy = 0
+
+    # If the new model performs better, save it
+    if new_model_accuracy > old_model_accuracy:
+        new_version = int(latest_model_path.split('model')[-1]) + 1 if latest_model_path else 1
+        new_model_path = os.path.join(model_directory, f'model{new_version}')
+        new_model.to_disk(new_model_path)
+        print(f"New model saved at {new_model_path} with accuracy {new_model_accuracy:.2f}%")
+    else:
+        print(f"Old model is better. No new model saved. Old model accuracy: {old_model_accuracy:.2f}%")
+
+if __name__ == "__main__":
+    main()
+
+
+
+
+
+
+
+
+  #  get_initial_data
+
+
+  import spacy
+import pandas as pd
+from sqlalchemy import create_engine, Table, Column, String, MetaData, Text
+from pymongo import MongoClient
+from sqlalchemy import create_engine
+import urllib
+import pyodbc
+import json
+import spacy
+from src.components.data_ingestion import fetch_data, fetch_test_data
+from src.components.model_train import train_model
+from src.components.model_test import evaluate_model
+from datetime import datetime
+import os
+
+# # Establish a connection to the SQL Server
+# params = urllib.parse.quote_plus(r'DRIVER={SQL Server};SERVER=HP-ELITEBOOK\SQLEXPRESS;DATABASE=job_scan;Trusted_Connection=yes;')
+# engine = create_engine("mssql+pyodbc:///?odbc_connect=%s" % params)
+
+# # Load the spaCy model
+# nlp = spacy.load(r"C:\Users\HP\Desktop\job_scan\artifact\spacy_model")
+
+
+# # Establish a connection to the SQL Server
+# params = urllib.parse.quote_plus(r'DRIVER={SQL Server};SERVER=HP-ELITEBOOK\SQLEXPRESS;DATABASE=job_scan;Trusted_Connection=yes;')
+# engine = create_engine("mssql+pyodbc:///?odbc_connect=%s" % params)
+
+# # Load the spaCy model
+# nlp = spacy.load(r"C:\Users\HP\Desktop\job_scan\artifact\spacy_model")
+
+# # MongoDB Connection
+# client = MongoClient('mongodb://localhost:27017/')
+# db = client['job_db']  # Use your desired database
+# collection = db['pre_annotate_data']  # Use your desired collection
+
+
+def fetch_data_from_sql(engine):
+    """
+    Function to fetch data from SQL database
+    """
+    data = []
+    df = pd.read_sql('SELECT * FROM job_data', engine)
+    for i in df['job_description']:
+        data.append(i)
+    a = ''.join(data)
+    return a
+
+def process_data_through_spacy(data, nlp):
+    """
+    Function to process data through the spaCy model
+    """
+    annotations = []
+
+    doc = nlp(data)
+        
+        # Extract annotations
+    entities = [(ent.text, ent.start_char, ent.end_char, ent.label_) for ent in doc.ents]
+        
+        # Append to annotations list
+    annotations.append({"text": data, "entities": entities})
+    return annotations
+
+# To make sure Docanno can understand the file we ned to convert the file formet
+
+def converted_data(data):
+    converted_data = []
+
+    for index, item in enumerate(data):
+        new_item = {}
+        new_item["id"] = index + 1
+        new_item["text"] = item["text"]
+
+        # Remove the text segment from each entity
+        new_item["label"] = [[entity[1], entity[2], entity[3]] for entity in item["entities"]]
+
+        new_item["Comments"] = []  # add this if your output also requires the "Comments" field
+        converted_data.append(new_item)
+
+    return converted_data
+
+def save_to_local_directory(annotations, directory):
+    data = converted_data(annotations)
+    os.makedirs(directory, exist_ok=True)
+
+    # Use current date and time to create a unique filename
+    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+    filename = f"annotations_{timestamp}.jsonl"
+    filepath = os.path.join(directory, filename)
+    with open(filepath, 'w') as f:  # replace 'newfile.jsonl' with your desired filename
+        for item in data:
+            json.dump(item, f)
+            f.write('\n')
+
+    # with open(filepath, 'w') as f:
+    #     json.dump(annotations, f)
+
+def insert_into_mongodb(annotations, collection):
+    data = converted_data(annotations)
+    """
+    Function to insert data into MongoDB
+    """
+    # Insert annotations into MongoDB
+    for annotation in data:
+        collection.insert_one(annotation)
+
+# df = fetch_data_from_sql(engine)
+# annotations = process_data_through_spacy(df, nlp)
+# save_to_local_directory(annotations, r'C:\Users\HP\Desktop\job_scan\pre_anootate_data')
+# insert_into_mongodb(annotations, collection)
 
 
 

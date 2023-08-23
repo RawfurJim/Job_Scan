@@ -10,4 +10,6 @@ dill
 gunicorn
 sqlalchemy
 pyodbc
+bs4
+lxml
 -e .
