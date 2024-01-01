@@ -1,56 +1,89 @@
-# Resume Booster: Enhance Your Resume with ATS Compatibility
-### Try it now : https://resumeatsparss-758b89fcdb8f.herokuapp.com/
+# Resume Booster: Unlock Your Career Potential with AI-Driven Resume Optimization
+
+Enhance your resume's compatibility with Applicant Tracking Systems (ATS) and increase its appeal to human recruiters. Resume Booster is your strategic tool in navigating the modern job market.Experience Resume Booster — Elevate Your Resume Today
+
 ![Animation_1](https://github.com/RawfurJim/Job_Scan/assets/64610564/209e77a9-722e-47cb-a671-5f34033693b6)
 
+
+
+
+
+
 ## Overview
-Resume Booster is a machine learning-based application designed to help individuals improve their resumes by aligning them with job descriptions, thereby increasing their chances of passing through ATS (Applicant Tracking System) scanners.
-
-With the majority of organizations utilizing ATS scanners to filter resumes, having the right keywords related to the job description is essential. Resume Booster scans the provided job description and the candidate's resume, comparing the skills mentioned and giving immediate feedback. The result includes a comprehensive list of skills found in the job description, marked with a check if present in the resume or marked otherwise.
-
-## Key Features
-
-#### Active Learning Method 
-Utilizing an iterative process that involves scraping, annotating, and training.
-#### Skill Matching
-Identifying both hard skills (e.g., Python, SQL) and soft skills (e.g., Good Communication, Problem Solving) in the job description and comparing them to the resume.
-#### Dockerized Workflow
-The entire project has been containerized, ensuring ease of setup and deployment.
-#### CI/CD Pipeline
-Seamless integration and deployment using GitHub Actions and deployment to Heroku.
+In an era where ATS scanners play a pivotal role in the job selection process, Resume Booster stands as a beacon for job seekers. This machine learning-powered application is meticulously designed to align your resume with specific job descriptions, significantly boosting your chances of making it past ATS filters and catching a recruiter's eye.
 
 
-## How it Works
+## Why Choose Resume Booster?
+With the majority of organizations depending on ATS for preliminary resume screening, possessing a resume enriched with the right keywords and skills is no longer optional—it's essential. Resume Booster excels in this regard by conducting an in-depth analysis of job descriptions and your resume, offering immediate, actionable feedback. It ensures your resume showcases the necessary hard and soft skills tailored for your desired role.
+
+
+## Try it now :  
+
+
+https://resumeatsparss-758b89fcdb8f.herokuapp.com/
+
+
+
+## Our Cutting-Edge Features
+
+### Innovative Active Learning Methodology:
+Incorporates a dynamic process of web scraping, data annotation, and progressive model training.
+### Precise Skill Matching: 
+Utilizes advanced algorithms to identify and match both technical and soft skills from job descriptions to your resume.
+### Dockerized Workflow for Seamless Experience: 
+Ensures easy setup and uniform functionality across different platforms using Docker.
+### Streamlined CI/CD Pipeline: 
+Facilitates continuous integration and efficient deployment via GitHub Actions, with the application hosted on Heroku for reliable access.
+
+
+
+
+## How It Works
 
 
 ![Animation_3](https://github.com/RawfurJim/Job_Scan/assets/64610564/d6325d67-84d2-4c24-8855-24b046cb7c6b)
 
 
 
-#### Data Scraping
-Initial scraping of data from various sources, saved to an SQL database.
-#### Manual Annotation
-The data is manually annotated with hard and soft skills and then saved to a MongoDB database.
-#### Model Training
-Utilizing SpaCy, the data is fetched from MongoDB and used to train the model.
-#### Active Learning Pipeline
-Creation of a connection/pipeline to input data to the model from the SQL database, obtaining initial annotation results (NER) for hard and soft skills. The annotations are stored in MongoDB, where manual checking and corrections are performed before feeding the data back into the model for training.
-Docker and CI/CD: Dockerizing the entire process, making it accessible via Docker Hub, and creating a CI/CD pipeline using GitHub Actions to deploy the application to Heroku.
+### Data Scraping Excellence: 
+Aggregates job descriptions from leading platforms, storing them in an SQL database for comprehensive analysis.
+### Annotation & MongoDB Integration: 
+Enhances data through meticulous manual annotation, subsequently stored in MongoDB for efficient processing.
+### Advanced Machine Learning with SpaCy: 
+Employs SpaCy's NLP capabilities for training the model to recognize and suggest relevant skills accurately.
+### Refined Active Learning Process:
+An interactive model training approach where human input continuously refines machine-generated annotations, fostering model accuracy.
+
+## Installation via Docker
 
 
+#### Install Docker:  
 
-## Installation
 
-To Install This App on Your Local Machine
-Follow the steps below to get this app running on your local machine:
+Ensure Docker is installed on your local machine.
 
-### Using Docker
 
-### First install Docker in your local machine. Then Pull the Docker Image: Use the following command to pull the latest image from Docker Hub.
-#### docker pull rmjim/job_scan:latest
+#### Download Docker Image:  Run the following command to download docker image  
 
-### Next, run the following command to start the container. Mapping port 6000 inside the container to port 6001 on your host machine
-#### docker container run -d -p 6001:6000 rmjim/job_scan:latest
+### docker pull rmjim/job_scan:latest 
 
-### Access the App: Open your browser and navigate to:
-##### http://localhost:6001
+#### Launch the Container:  Start the application using following command. 
+
+### docker container run -d -p 6001:6000 rmjim/job_scan:latest.
+
+
+#### Access Resume Booster:  Simply open your preferred web browser like Google Chrome or Mozilla Firefox. Type following link and press Enter.
+
+### http://localhost:6001 
+
+
+## Resume Booster's Roadmap
+##### Expanding Horizons: 
+Initially focused on data science and analytics roles, we are branching out to cover a diverse range of industries.
+##### Ongoing Enhancement: 
+Constantly evolving based on user feedback, we are dedicated to refining our features, including comprehensive resume evaluations.
+##### Community Involvement and Growth: 
+We encourage and welcome contributions from developers globally.
+
+###### Resume Booster is more than just a tool; it represents a journey towards empowering professionals to achieve their career aspirations. Be a part of this transformation – optimize your resume and unlock new career opportunities.
 
