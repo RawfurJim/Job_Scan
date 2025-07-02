@@ -17,12 +17,6 @@ In an era where ATS scanners play a pivotal role in the job selection process, R
 With the majority of organizations depending on ATS for preliminary resume screening, possessing a resume enriched with the right keywords and skills is no longer optional—it's essential. Resume Booster excels in this regard by conducting an in-depth analysis of job descriptions and your resume, offering immediate, actionable feedback. It ensures your resume showcases the necessary hard and soft skills tailored for your desired role.
 
 
-## Try it now :  
-
-
-https://resumeatsparss-758b89fcdb8f.herokuapp.com/
-
-
 
 ## Our Cutting-Edge Features
 
