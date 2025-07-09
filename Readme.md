@@ -1,6 +1,6 @@
 # Resume Booster: Unlock Your Career Potential with AI-Driven Resume Optimization
 
-Enhance your resume's compatibility with Applicant Tracking Systems (ATS) and increase its appeal to human recruiters. Resume Booster is your strategic tool in navigating the modern job market.Experience Resume Booster — Elevate Your Resume Today
+Enhance your resume's compatibility with Applicant Tracking Systems (ATS) and increase its appeal to human recruiters. Resume Booster is your strategic tool in navigating the modern job market.Experience Resume Booster — Elevate Your Resume.
 
 ![Animation_1](https://github.com/RawfurJim/Job_Scan/assets/64610564/209e77a9-722e-47cb-a671-5f34033693b6)
 
